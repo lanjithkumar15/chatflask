@@ -1,0 +1,5 @@
+flask
+pytz
+datetime
+date
+chatterbot==1.0.4
