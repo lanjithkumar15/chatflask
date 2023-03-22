@@ -21,7 +21,7 @@ bot = ChatBot(
     ],
     database_uri='sqlite:///database.sqlite3'
 )
-# to train your own txt file
+#to train your own txt file
 #{with open('dialogs.txt', 'r') as k:
 #    conv = k.read().splitlines()
     
