@@ -22,11 +22,11 @@ bot = ChatBot(
     database_uri='sqlite:///database.sqlite3'
 )
 # to train your own txt file
-#with open('dialogs.txt', 'r') as k:
+#{with open('dialogs.txt', 'r') as k:
 #    conv = k.read().splitlines()
     
 #trainer = ListTrainer(bot)
-#trainer.train(conv)
+#trainer.train(conv)}
 trainer = ChatterBotCorpusTrainer(bot)
 trainer.train('chatterbot.corpus.english')
 
