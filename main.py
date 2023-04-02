@@ -1,12 +1,20 @@
 from flask import Flask, request, render_template
 from chatterbot import ChatBot
-from chatterbot.trainers import ChatterBotCorpusTrainer
 from chatterbot.trainers import ListTrainer
+from chatterbot.trainers import ChatterBotCorpusTrainer
 import pytz
 from datetime import datetime, date
+from fp.fp import FreeProxy
+import nltk
+
+proxy = FreeProxy().get()
+nltk.set_proxy(proxy)
+nltk.download('averaged_perceptron_tagger')
+nltk.download('punkt')
+nltk.download('stopwords')
+
 
 app = Flask(__name__)
-
 bot = ChatBot(
     'chatbot',
     storage_adapter='chatterbot.storage.SQLStorageAdapter',
@@ -21,46 +29,47 @@ bot = ChatBot(
     ],
     database_uri='sqlite:///database.sqlite3'
 )
-#to train your own txt file
-#{with open('dialogs.txt', 'r') as k:
-#    conv = k.read().splitlines()
-    
-#trainer = ListTrainer(bot)
-#trainer.train(conv)}
-trainer = ChatterBotCorpusTrainer(bot)
-trainer.train('chatterbot.corpus.english')
 
-responses = {
-    'who created you?': 'chatterbot',
-    'who designed you': 'chatterbot',
-    'who made you': 'chatterbot',
-    'exit': 'bye have a nice day',
-    'bye': 'bye have a nice day',
-    'quite': 'bye have a nice day',
-    'Thanks for help': 'Thanks it is my pleasure to help you!',
-    'Thank you': 'Thanks it is my pleasure to help you!',
-    'Thank for your help': 'Thanks it is my pleasure to help you!',
-    'you are great': 'Thanks it is my pleasure to help you!',
-    'you are awsome': 'Thanks it is my pleasure to help you!',
-    'time': datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%H:%M:%S'),
-    'time now': datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%H:%M:%S'),
-    'what is time now': datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%H:%M:%S'),
-    'time?': datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%H:%M:%S'),
-    'time now?': datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%H:%M:%S'),
-    'date': str(date.today()),
-    'today date': str(date.today()),
-    'date?': str(date.today()),
-    'todaydate': str(date.today())
-}
+data = "save.txt"
+file = open(data, "r")
+training = file.readlines()
+trainer = ListTrainer(bot)
+trainer.train(training)
+trainer = ChatterBotCorpusTrainer(bot)
+trainer.train("chatterbot.corpus.english")
+
+def generate_response(user_input):
+    greeting_keywords = ['hello', 'hi', 'hey', 'greetings', 'howdy']
+    gratitude_keywords = ['thanks', 'thank you', 'appreciate it', 'thankful']
+    exit_keywords = ['exit', 'bye', 'quit', 'goodbye']
+    creator_keywords = ['who created you', 'who made you', 'who designed you']
+    time_keywords = ['time', 'what time is it', 'what is the time', 'current time']
+    date_keywords = ['date', 'what is the date', 'today date']
+    if any(keyword in user_input.lower() for keyword in greeting_keywords):
+        return 'Hello!'
+    elif any(keyword in user_input.lower() for keyword in gratitude_keywords):
+        return 'You\'re welcome!'
+    elif any(keyword in user_input.lower() for keyword in exit_keywords):
+        return 'Goodbye!'
+    elif any(keyword in user_input.lower() for keyword in creator_keywords):
+        return 'I was created by the ChatterBot team.'
+    elif any(keyword in user_input.lower() for keyword in time_keywords):
+        IST = pytz.timezone('Asia/Kolkata')
+        ist = datetime.now(IST)
+        return 'The current time is ' + ist.strftime('%H:%M:%S') + ' in India.'
+    elif any(keyword in user_input.lower() for keyword in date_keywords):
+        return 'Today\'s date is ' + str(date.today()) + '.'
+    else:
+        return str(bot.get_response(user_input))
 
 @app.route("/")
 def home():
-    return render_template("index.html")
+    return render_template('index.html')
 
 @app.route("/get")
 def response():
-    string = request.args.get('msg')
-    return responses.get(string, str(bot.get_response(string)))
+    user_input = request.args.get('msg')
+    return generate_response(user_input)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
