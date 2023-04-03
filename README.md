@@ -5,4 +5,5 @@ CHATBOT IMPLEMENTATION USING A FLASK
 <p>git clone https://github.com/Crazyoh123/chatflask</p>
 <p>pip3 install -r requirements.txt</p>
 <p> python main.py </p>
+<h1>NOTE:</h2>
 <p>remeber it is implemented using the flask,chatterbot==1.0.4,nltk and free-proxy scraper
